@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/tipcoin.iml" filepath="$PROJECT_DIR$/tipcoin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tipcoin-android.iml" filepath="$PROJECT_DIR$/tipcoin-android.iml" />
     </modules>
   </component>
 </project>
