@@ -1,12 +1,18 @@
 package com.iic.tipcoin;
 
+import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 
 import com.facebook.CallbackManager;
@@ -33,6 +39,7 @@ import java.util.Collections;
 public class SplashFragment extends Fragment {
 
     private static final String LOG_TAG = "SplashFragment";
+    private ValueAnimator mBackgroundAnimator;
 
     public SplashFragment() {
     }
@@ -41,7 +48,10 @@ public class SplashFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_splash, container, false);
-
+        view.setBackground(new TranslatableBitmapDrawable(getResources(),
+                BitmapFactory.decodeResource(getResources(), R.drawable.bg_tile)
+        ));
+        setupAnimator(view);
         refreshLogin(view);
 
         return view;
@@ -68,13 +78,16 @@ public class SplashFragment extends Fragment {
             Log.d(LOG_TAG, "Not found before fetch");
             showLoginButton(view);
         } else {
+            mBackgroundAnimator.start();
             currentUser.fetchInBackground(new GetCallback<ParseUser>() {
                 @Override
                 public void done(ParseUser parseObject, ParseException e) {
+                    mBackgroundAnimator.cancel();
                     if (parseObject == null) {
                         Log.d(LOG_TAG, "Not found after fetch");
                         showLoginButton(view);
                     } else {
+                        Log.d(LOG_TAG, "Found after fetch");
                         loggedIn(parseObject);
                     }
                 }
@@ -113,4 +126,21 @@ public class SplashFragment extends Fragment {
         ParseFacebookUtils.onActivityResult(requestCode, resultCode, data);
 
     }
+
+    private void setupAnimator(View view) {
+        final TranslatableBitmapDrawable drawable = (TranslatableBitmapDrawable)view.getBackground();
+        mBackgroundAnimator = ValueAnimator.ofInt(0, drawable.getBitmap().getWidth());
+        mBackgroundAnimator.setDuration(2000);
+        mBackgroundAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            public void onAnimationUpdate(ValueAnimator animation) {
+                Integer value = (Integer) animation.getAnimatedValue();
+                drawable.setTranslateX(value);
+            }
+        });
+        mBackgroundAnimator.setInterpolator(new LinearInterpolator());
+        mBackgroundAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        mBackgroundAnimator.setRepeatMode(ValueAnimator.RESTART);
+
+    }
+
 }
