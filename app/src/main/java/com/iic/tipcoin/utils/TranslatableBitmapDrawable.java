@@ -1,4 +1,4 @@
-package com.iic.tipcoin;
+package com.iic.tipcoin.utils;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;

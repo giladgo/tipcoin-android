@@ -1,4 +1,4 @@
-package com.iic.tipcoin;
+package com.iic.tipcoin.activity;
 
 import android.os.Bundle;
 import android.os.PersistableBundle;

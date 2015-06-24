@@ -1,11 +1,8 @@
-package com.iic.tipcoin;
+package com.iic.tipcoin.activity;
 
 import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,22 +12,19 @@ import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
+import com.iic.tipcoin.R;
+import com.iic.tipcoin.utils.TranslatableBitmapDrawable;
 import com.parse.GetCallback;
 import com.parse.LogInCallback;
-import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
-import com.parse.ParseObject;
 import com.parse.ParseUser;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import butterknife.OnClick;
 
 
 /**
@@ -48,6 +42,7 @@ public class SplashFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_splash, container, false);
+        ButterKnife.inject(this, view);
         view.setBackground(new TranslatableBitmapDrawable(getResources(),
                 BitmapFactory.decodeResource(getResources(), R.drawable.bg_tile)
         ));
@@ -57,13 +52,15 @@ public class SplashFragment extends Fragment {
         return view;
     }
 
+    @InjectView(R.id.login_button)
+    Button mLoginButton;
+
     private void loggedIn(ParseUser user) {
+        Intent intent = new Intent(getActivity(), Groups.class);
+        intent.putExtra("user", user.getObjectId());
+        startActivity(intent);
+
         Log.d(LOG_TAG, "We're in! " + user.getUsername());
-        View view = getView();
-        if (view != null) {
-            final Button loginButton = (Button) view.findViewById(R.id.login_button);
-            loginButton.setVisibility(View.GONE);
-        }
     }
 
     private void refreshLogin() {
@@ -76,7 +73,7 @@ public class SplashFragment extends Fragment {
 
         if (currentUser == null) {
             Log.d(LOG_TAG, "Not found before fetch");
-            showLoginButton(view);
+            showLoginButton();
         } else {
             mBackgroundAnimator.start();
             currentUser.fetchInBackground(new GetCallback<ParseUser>() {
@@ -85,7 +82,7 @@ public class SplashFragment extends Fragment {
                     mBackgroundAnimator.cancel();
                     if (parseObject == null) {
                         Log.d(LOG_TAG, "Not found after fetch");
-                        showLoginButton(view);
+                        showLoginButton();
                     } else {
                         Log.d(LOG_TAG, "Found after fetch");
                         loggedIn(parseObject);
@@ -95,24 +92,25 @@ public class SplashFragment extends Fragment {
         }
     }
 
-    private void showLoginButton(View view) {
-        final Button loginButton = (Button) view.findViewById(R.id.login_button);
-        loginButton.setVisibility(View.VISIBLE);
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doLogin();
-            }
-        });
+    private void showLoginButton() {
+        mLoginButton.setVisibility(View.VISIBLE);
     }
 
-    private void doLogin() {
+    private void hideLoginButton() {
+        mLoginButton.setVisibility(View.INVISIBLE);
+    }
+
+    @OnClick(R.id.login_button)
+    @SuppressWarnings("unused")
+    void doLogin() {
+        mBackgroundAnimator.start();
+        hideLoginButton();
         ParseFacebookUtils.logInWithReadPermissionsInBackground(this, Collections.singletonList("public_profile"), new LogInCallback() {
             @Override
             public void done(ParseUser user, ParseException err) {
+                mBackgroundAnimator.cancel();
                 if (user == null) {
-                    Log.e(LOG_TAG, "Error", err);
-                    Log.d("MyApp", "Uh oh. The user cancelled the Facebook login.");
+                    Log.d(LOG_TAG, "Uh oh. The user cancelled the Facebook login.");
                 } else {
                     refreshLogin();
                 }
@@ -140,7 +138,6 @@ public class SplashFragment extends Fragment {
         mBackgroundAnimator.setInterpolator(new LinearInterpolator());
         mBackgroundAnimator.setRepeatCount(ValueAnimator.INFINITE);
         mBackgroundAnimator.setRepeatMode(ValueAnimator.RESTART);
-
     }
 
 }
